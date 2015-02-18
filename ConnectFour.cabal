@@ -25,3 +25,17 @@ executable ConnectFour
                        vector
   hs-source-dirs:      src
   default-language:    Haskell2010
+
+Test-Suite spec
+  Type:             exitcode-stdio-1.0
+  Hs-Source-Dirs:   src, test
+  Main-Is:          TestMain.hs
+  build-depends: base
+                , hspec	
+                , QuickCheck
+                , quickcheck-instances
+  build-depends:       base >=4.6 && <4.7,
+                       hashmap,
+                       matrix,
+                       vector
+ 

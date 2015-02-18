@@ -2,7 +2,7 @@ module Main where
 
 import Board
 
-main = print $ dropOpponent 6$dropPlayer 6 $ blankBoard
+main = print $ hasWon$ dropPlayer 6$dropPlayer 6 $ dropPlayer 6$dropPlayer 6 $ blankBoard
 
 
 
