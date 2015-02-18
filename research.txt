@@ -1,0 +1,1 @@
+Amount of permutations of the board: 

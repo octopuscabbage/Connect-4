@@ -28,3 +28,18 @@ then compile and run
 ```
 cabal run
 ```
+
+#Documentation
+
+When documenting functions please use haddock style documentation
+
+for example, write
+
+```
+-- |This function does this
+```
+instead of just
+
+```
+-- This function does this
+```
