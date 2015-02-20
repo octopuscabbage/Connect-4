@@ -2,13 +2,7 @@ module AI where
 
 import Board
 import AIDB
-
-
--- |Represents a state and it's associated weight
-data StateWeight = StateWeight { stateBoard:: Board,  stateValue::Int} deriving (Eq, Show)
-
-instance Ord StateWeight where
-	(StateWeight _ v1) `compare` (StateWeight _ v2) =  v1 `compare` v2
+import AITypes
 
 getStateWeight:: Board -> IO StateWeight
 getStateWeight board= getValue (show board) >>=  return . StateWeight board . maybeToValue

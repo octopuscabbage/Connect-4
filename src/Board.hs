@@ -30,6 +30,7 @@ getColumns:: Board -> V.Vector (V.Vector Piece)
 getColumns board = V.map (\i-> getCol i board) $ V.fromList [1..7]
 
 -- |Detect if player has won
+-- |TODO: Detect diagnal wins
 detectWin:: Piece -> Board  ->  Bool
 detectWin player board  = checkAnyVectorContainsWin (getRows board) || checkAnyVectorContainsWin (getColumns board) 
 	where  	checkLinearWinCondition vec = V.foldl (\i element-> if i >= 4 then i else if element == player then i+1 else 1) 1 vec >= (4::Int) --The four isn't a magic number, this is connect four
@@ -39,6 +40,7 @@ detectWin player board  = checkAnyVectorContainsWin (getRows board) || checkAnyV
 
 
 -- |Drops a piece in the specified column
+-- |TODO: Needs to support not adding to full columns
 dropPiece:: Piece -> Int -> Board -> Board
 dropPiece piece column board = setElem piece (findLastEmptyRow, column) board
 	where 	findLastEmptyRow = V.foldl (\i element -> if element == Empty then i+1 else i) 0 getColumn 
