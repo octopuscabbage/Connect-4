@@ -4,6 +4,5 @@ import Board
 import AIDB
 
 
-main = do
-	val <-  getValue "ab"
-	print val
+main = getValue (show blankBoard) >>= print
+	

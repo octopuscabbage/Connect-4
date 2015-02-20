@@ -51,5 +51,3 @@ dropPlayer = dropPiece Player
 -- |Drop a piece on the Opponent side
 dropOpponent ::  Int -> Board -> Board
 dropOpponent = dropPiece Opponent
-
-

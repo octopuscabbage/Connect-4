@@ -28,13 +28,15 @@ State
     deriving Show
 |]
 
-dbName::Text
+dbName:: Text
 dbName = "test.db"
 
 
 createDB:: IO ()
 createDB = runSqlite dbName $ do runMigration migrateAll 
 
+
+insertState:: String -> Int -> IO (Key State)
 insertState state value = runSqlite dbName $ (insert $ State state value)
 
 getValue:: String -> IO (Maybe Int)
@@ -42,3 +44,5 @@ getValue board = runSqlite dbName $ do
 	boardEntity <- getBy $ Board board
 	return $ stateValue <$> entityVal <$> boardEntity
 
+containsEntry:: String -> IO Bool
+containsEntry  board =  getValue board  >>= (return . isJust) 
