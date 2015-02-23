@@ -16,7 +16,7 @@ import Database.Persist.Sqlite
 import Database.Persist.TH 
 import Data.Maybe
 import Data.Text
-import Control.Monad.IO.Class
+--import Control.Monad.IO.Class
 import Control.Applicative
 import AITypes
 
@@ -45,10 +45,16 @@ insertState (StateWeight state value) = do
 	if not exists then (runSqlite dbName $ (insert $ State stateString value)) >> return ()
 		else return ()
 	where stateString = show state
+
+makeEntryIfNone boardstring = do
+	exists <- containsEntry boardstring
+	if not exists then (runSqlite dbName $ ( insert $ State boardstring 0)) >> return ()
+		else return ()
 		
 
 -- |For some boardstate, get the value
 -- |If board isn't present in DB then return nothing
+-- TODO Fix this
 getValue:: String -> IO (Maybe Int)
 getValue board = runSqlite dbName $ do
 	boardEntity <- getBy $ Board board
@@ -58,5 +64,8 @@ getValue board = runSqlite dbName $ do
 containsEntry:: String -> IO Bool
 containsEntry  board =  getValue board  >>= (return . isJust) 
 
--- |TODO: Add update on win function
--- |TODO: Add update on loss function
+updateValueOfBoards:: [String] -> Int -> IO ()
+updateValueOfBoards boards valueDiff = mapM (\b-> makeEntryIfNone b) boards >> (runSqlite dbName $ (mapM (\b-> updateWhere [StateBoardstring ==. b] [StateValue +=. valueDiff]) boards) >> return ())
+
+updateWin boards = updateValueOfBoards boards 1
+updateLoss boards = updateValueOfBoards boards (-1)

@@ -1,8 +1,12 @@
 module Main where
 
-import Board
-import AIDB
+
+import Game
+import AI
+import Control.Applicative
 
 
-main = getValue (show blankBoard) >>= print
+main = runGameAndWriteOut maxBot maxBot
+
+maxBot board = fst <$> getMaxNextStateAndIndex board
 	
