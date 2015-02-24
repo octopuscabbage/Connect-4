@@ -9,6 +9,13 @@ data Piece = Player | Opponent | Empty deriving (Eq,Show,Read)
 opposer Player = Opponent
 opposer Opponent = Player
 
+nonEmpty Empty = False
+nonEmpty _ = True
+
+minShow Player = "P"
+minShow Opponent = "O"
+minShow Empty = "E"
+
 -- |Board addressing is always row column
 type Board = Matrix Piece
 
@@ -59,8 +66,17 @@ dropOpponent = dropPiece Opponent
 
 
 flipPlayer board = fmap flipPiece board
-	where flipPiece piece
-		| (piece == Player) = Opponent
-		| (piece == Opponent) = Player
-		| otherwise = piece
+	where 	flipPiece Player = Opponent
+		flipPiece Opponent = Player	
+		flipPiece Empty = Empty
 
+getAllPositions = sequence [[1..6],[1..7]]
+toListOfBoardPos board = map (\(r:c:[]) -> BoardPos (board ! (r,c)) r c) getAllPositions
+
+minString:: Board -> String
+minString board= concatMap (\(BoardPos p r c) -> (minShow p) ++ " " ++ (show r) ++ " " ++ (show c) ++ " ") $ filter (\(BoardPos p _ _) -> nonEmpty p) $ toListOfBoardPos board
+isFull:: Board -> Bool
+isFull board = not $ V.any (==True) $ V.map (\v -> V.any (==Empty) v)  $ getRows board
+
+-- | Boardpos is a piece followed by it's row and column
+data BoardPos = BoardPos Piece Int Int

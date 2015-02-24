@@ -1,5 +1,6 @@
 module Game where
 
+
 import Board
 import Control.Monad.Writer
 import AIDB
@@ -17,31 +18,37 @@ runGame playerF opponentF = runGameFromBoard playerF opponentF blankBoard
 --Todo flip boards so that function sees itself as player
 runGameFromBoard:: (Board -> IO Int) -> (Board -> IO Int) -> Board -> Game	
 runGameFromBoard playerF opponentF board = do
-	playerMove <- lift $playerF board
+	playerMove <- lift $ playerF board
 	let boardAfterPlayerTurn = fromJust $ dropPlayer playerMove board
-	lift $ print boardAfterPlayerTurn
 	tell [(Player,boardAfterPlayerTurn)]
-	if detectWin Player boardAfterPlayerTurn
-		then return Player
-		else do
-			let flippedBoard = flipPlayer boardAfterPlayerTurn
-			opponentMove <- lift $ opponentF flippedBoard
-			let boardAfterOpponentTurn = fromJust $ dropOpponent opponentMove $ boardAfterPlayerTurn
-			lift $ print boardAfterOpponentTurn
-			tell [(Opponent,flippedBoard)]
-			if detectWin Opponent boardAfterOpponentTurn then return Opponent
-				else runGameFromBoard playerF opponentF boardAfterOpponentTurn
+	if isFull boardAfterPlayerTurn then return Empty 
+	else 
+		if detectWin Player boardAfterPlayerTurn
+			then return Player
+			else do
+				let flippedBoard = flipPlayer boardAfterPlayerTurn
+				opponentMove <- lift $ opponentF flippedBoard
+				let boardAfterOpponentTurn = fromJust $ dropOpponent opponentMove $ boardAfterPlayerTurn
+				tell [(Opponent,flipPlayer boardAfterOpponentTurn)]
+				if isFull boardAfterOpponentTurn then return Empty 
+					else if detectWin Opponent boardAfterOpponentTurn then return Opponent
+						else runGameFromBoard playerF opponentF boardAfterOpponentTurn
 		
 
 
 runGameAndWriteOut:: (Board -> IO Int) -> (Board -> IO Int) -> IO ()
 runGameAndWriteOut playerF opponentF = do
 	(result,log) <- runWriterT $ runGame playerF opponentF
-	writeWin result log
-	writeLoss (opposer result) log
-	return ()
+	if result == Empty then do
+		writeLoss Player log --if you're not first you're last
+		writeLoss Opponent log
+		else do
+		writeWin result log
+		writeLoss (opposer result) log
+		return ()
 		
 
-writeWin piece log = updateWin $ map show $ filter (\(p,s) -> p == piece) log
-writeLoss piece log = updateLoss $ map show $ filter (\(p,s) -> p == piece) log
+writeWin piece log = updateWin $ map snd $ filter (\(p,s) -> p == piece) log
+writeLoss piece log = updateLoss $ map snd $ filter (\(p,s) -> p == piece) log
+
 
