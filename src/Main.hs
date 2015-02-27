@@ -7,10 +7,13 @@ import AI
 import Control.Applicative
 import Control.Concurrent
 import Control.Monad
+import Heuristics
 
-main = playForever
+main = runGameAndWriteOut playerBot maxBot
 
 maxBot board = fst <$> getMaxNextStateAndIndex board
+
+heuristicBot board = getNextMoveByHeuristic board
 	
 playMaxBots = runGameAndWriteOut maxBot maxBot
 

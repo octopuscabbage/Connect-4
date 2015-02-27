@@ -32,5 +32,4 @@ getRandom:: IO Int
 getRandom = randomRIO (1,7)
 
 
-		
 
