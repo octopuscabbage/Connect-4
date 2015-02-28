@@ -2,8 +2,15 @@ module Board where
 
 import Data.Matrix
 import qualified Data.Vector as V
+import Data.Maybe
+import Control.Parallel.Strategies
 
-data Piece = Player | Opponent | Empty deriving (Eq,Show,Read)
+data Piece = Player | Opponent | Empty deriving (Eq,Read)
+
+instance Show Piece where
+	show Empty = "."
+	show Player = "P"
+	show Opponent = "O"
 
 opposer Player = Opponent
 opposer Opponent = Player
@@ -14,6 +21,7 @@ nonEmpty _ = True
 minShow Player = "P"
 minShow Opponent = "O"
 minShow Empty = "E"
+
 
 -- |Board addressing is always row column
 type Board = Matrix Piece
@@ -38,25 +46,14 @@ getRows board = V.map (\i-> getRow i board) $ V.fromList [1..6]
 getColumns:: Board -> V.Vector (V.Vector Piece)
 getColumns board = V.map (\i-> getCol i board) $ V.fromList [1..7]
 
--- |Detect if player has won
--- |TODO: Detect diagnal wins
-{--
-detectWin:: Piece -> Board  ->  Bool
-detectWin player board  = checkAnyVectorContainsWin (getRows board) || checkAnyVectorContainsWin (getColumns board) 
-	where  	checkLinearWinCondition vec = V.foldl (\i element-> if i >= 5 then i else if element == player then i+1 else 1) 1 vec >= (5::Int) --The four isn't a magic number, this is connect four
-		anyTrue = V.any (==True)	
-		checkAnyVectorContainsWin vecs = anyTrue (V.map checkLinearWinCondition vecs) 
-
---}
-
 detectWin:: Piece -> Board -> Bool
 detectWin player board = any (>=4) $ getAllRuns player board 
 
-getAllRuns player board = concatMap (getRuns player board) $ filter (\(BoardPos p _ _) -> p == player) $ toListOfBoardPos board
+getAllRuns player board = concat $ parMap rpar (getRuns player board) $ filter (\(BoardPos p _ _) -> p == player) $ toListOfBoardPos board
 -- | Given a player and a board and an initial boardpos what's the distances you can go from it while still being in a 'run'
 -- | a run is defined as consective piece of the same value
 getRuns:: Piece -> Board -> BoardPos -> [Int]
-getRuns player board boardPos = map ($ boardPos) [getLine (\r c -> (r+1,c)), getLine (\r c -> (r - 1,c)), getLine (\r c -> (r,c+1)),getLine (\r c ->( r, c-1)), getLine (\r c -> (r+1,c+1)), getLine (\r c -> (r+1,c-1)), getLine (\r c -> (r-1,c+1)), getLine (\r c -> (r-1,c-1))]
+getRuns player board boardPos = map($ boardPos) [getLine (\r c -> (r+1,c)), getLine (\r c -> (r - 1,c)), getLine (\r c -> (r,c+1)),getLine (\r c ->( r, c-1)), getLine (\r c -> (r+1,c+1)), getLine (\r c -> (r+1,c-1)), getLine (\r c -> (r-1,c+1)), getLine (\r c -> (r-1,c-1))]
 		where getLine movF boardPos = getLine' 0 boardPos
 			where getLine' n (BoardPos piece row column)
 				| (not $ isInsideMatrix row column) = n
@@ -108,3 +105,9 @@ instance Show BoardPos where
 	show (BoardPos Empty row column) = ""
 	show (BoardPos Player row column) = "P"++" "++(show row)++" "++(show column)
 	show (BoardPos Opponent row column) = "O"++" "++(show row) ++ " " ++ show column 
+
+-- |Returns all the board states possible from the current board state and the row that you drop in to get them
+computePossibleBoardStatesAfterTurn:: Piece -> Board -> [(Int,Board)]
+computePossibleBoardStatesAfterTurn player currentboard =  fromJust $sequence$ filter isJust $ map (\i->dropPiece player i currentboard >>= (\next -> return (i,next))) [1..7]
+
+

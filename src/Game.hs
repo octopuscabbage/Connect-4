@@ -2,53 +2,39 @@ module Game where
 
 
 import Board
-import Control.Monad.Writer
-import AIDB
 import Data.Maybe
-
-data Result = Win | Loss deriving (Eq, Show)
-
--- | PlayerBoard, OpponentBoard and IO piece that won
-type Game = WriterT [(Piece,Board)] IO Piece
+import Data.Functor
+import System.TimeIt
 
 
-runGame:: (Board -> IO Int) -> (Board -> IO Int) -> Game	
-runGame playerF opponentF = runGameFromBoard playerF opponentF blankBoard
+watchTwoBotsPlayFromStart bot1F bot2F = watchTwoBotsPlayFromBoard bot1F bot2F blankBoard
+watchTwoBotsPlayFromBoard bot1F bot2F board = do
+	let boardAfterPlayer1Turn = fromJust $ dropPlayer (bot1F board) board
+	timeIt $ print boardAfterPlayer1Turn
+	if isFull boardAfterPlayer1Turn then print "bots drew, boring" >> return 0	
+		else if detectWin Player boardAfterPlayer1Turn then print "player1 won" >> return 0
+			else do
+				let boardAfterPlayer2Turn = fromJust $ dropOpponent (bot2F $ flipPlayer boardAfterPlayer1Turn) boardAfterPlayer1Turn
+				timeIt $ print boardAfterPlayer2Turn
+				if isFull boardAfterPlayer2Turn then print "bots drew boring" >> return 0	
+					else if detectWin Opponent boardAfterPlayer2Turn then print "Player 2 won" >> return 0
+						else watchTwoBotsPlayFromBoard bot1F bot2F boardAfterPlayer2Turn
 
---Todo flip boards so that function sees itself as player
-runGameFromBoard:: (Board -> IO Int) -> (Board -> IO Int) -> Board -> Game	
-runGameFromBoard playerF opponentF board = do
-	playerMove <- lift $ playerF board
-	let boardAfterPlayerTurn = fromJust $ dropPlayer playerMove board
-	tell [(Player,boardAfterPlayerTurn)]
-	if isFull boardAfterPlayerTurn then return Empty 
-	else 
-		if detectWin Player boardAfterPlayerTurn
-			then return Player
+playPlayer opponentF = playPlayerFromBoard opponentF blankBoard 
+playPlayerFromBoard opponentF board = do
+	print board
+	print " 1 2 3 4 5 6 7"
+	print "What is your move? >> "
+	playerMove <- (read <$> getLine)
+	let boardAfterPlayerTurn = fromJust $dropPlayer playerMove board
+	if isFull boardAfterPlayerTurn then print "IT'S A DRAAAAAWWWW!"	>> return 0
+		else if detectWin Player boardAfterPlayerTurn then print "Player wins!Worthless AI, this is why you haven't replaced mcdonalds workers" >> return 0
 			else do
 				let flippedBoard = flipPlayer boardAfterPlayerTurn
-				opponentMove <- lift $ opponentF flippedBoard
-				let boardAfterOpponentTurn = fromJust $ dropOpponent opponentMove $ boardAfterPlayerTurn
-				tell [(Opponent,flipPlayer boardAfterOpponentTurn)]
-				if isFull boardAfterOpponentTurn then return Empty 
-					else if detectWin Opponent boardAfterOpponentTurn then return Opponent
-						else runGameFromBoard playerF opponentF boardAfterOpponentTurn
-		
-
-
-runGameAndWriteOut:: (Board -> IO Int) -> (Board -> IO Int) -> IO ()
-runGameAndWriteOut playerF opponentF = do
-	(result,log) <- runWriterT $ runGame playerF opponentF
-	if result == Empty then do
-		writeLoss Player log --if you're not first you're last
-		writeLoss Opponent log
-		else do
-		writeWin result log
-		writeLoss (opposer result) log
-		return ()
-		
-
-writeWin piece log = updateWin $ map snd $ filter (\(p,s) -> p == piece) log
-writeLoss piece log = updateLoss $ map snd $ filter (\(p,s) -> p == piece) log
-
+				opponentMove <- opponentF flippedBoard
+				timeIt $ print ("Computer plays " ++  show opponentMove)
+				let boardAfterOpponentTurn = fromJust $ dropOpponent opponentMove boardAfterPlayerTurn
+				if isFull boardAfterOpponentTurn then print "AI Made a draw, the only winning move is not to play" >> return 0
+					else if detectWin Opponent boardAfterOpponentTurn then print boardAfterOpponentTurn >> print "The AI won, Skynet is coming" >> return 0
+						else playPlayerFromBoard opponentF boardAfterOpponentTurn
 
