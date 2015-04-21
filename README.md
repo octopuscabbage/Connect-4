@@ -1,7 +1,6 @@
 #What is this?
 
-A machine learning connect four bot for the ACM connect four tournament
-
+A connect four bot for the AIMania ACM AI Contest. Uses standard minMax 2 player algorithm.
 
 #Using this program
 
