@@ -27,14 +27,32 @@ playPlayerFromBoard opponentF board = do
 	print "What is your move? >> "
 	playerMove <- (read <$> getLine)
 	let boardAfterPlayerTurn = fromJust $dropPlayer playerMove board
-	if isFull boardAfterPlayerTurn then print "IT'S A DRAAAAAWWWW!"	>> return 0
-		else if detectWin Player boardAfterPlayerTurn then print "Player wins!Worthless AI, this is why you haven't replaced mcdonalds workers" >> return 0
+	if isFull boardAfterPlayerTurn then print "IT'S A DRAAAAAWWWW!"	>> return ()
+		else if detectWin Player boardAfterPlayerTurn then print "Player wins!Worthless AI, this is why you haven't replaced mcdonalds workers" >> return ()
 			else do
 				let flippedBoard = flipPlayer boardAfterPlayerTurn
 				opponentMove <- opponentF flippedBoard
 				timeIt $ print ("Computer plays " ++  show opponentMove)
 				let boardAfterOpponentTurn = fromJust $ dropOpponent opponentMove boardAfterPlayerTurn
-				if isFull boardAfterOpponentTurn then print "AI Made a draw, the only winning move is not to play" >> return 0
-					else if detectWin Opponent boardAfterOpponentTurn then print boardAfterOpponentTurn >> print "The AI won, Skynet is coming" >> return 0
-						else playPlayerFromBoard opponentF boardAfterOpponentTurn
+				if isFull boardAfterOpponentTurn then print "AI Made a draw, the only winning move is not to play" >> return ()
+					else if detectWin Opponent boardAfterOpponentTurn then print boardAfterOpponentTurn >> print "The AI won, Skynet is coming" >> return ()
+						else playPlayerFromBoard opponentF boardAfterOpponentTurn >> return ()
+
+playOpponent oppnentF = playOpponentFromBoard oppnentF blankBoard
+playOpponentFromBoard oppnentF board = do
+  playerMove <- oppnentF board 
+  print ("Computer plays " ++ show playerMove)
+  let boardAfterPlayerTurn = fromJust $ dropPlayer playerMove board
+  if isFull boardAfterPlayerTurn then print "AI drew"
+     else if detectWin Player boardAfterPlayerTurn then print "AI Won"
+             else do
+                 print boardAfterPlayerTurn 
+                 print " 1 2 3 4 5 6 7"
+                 print "What is your move? >>"
+                 opponentMove <- (read <$> getLine)
+                 let boardAfterOpponentTurn = fromJust $ dropOpponent opponentMove boardAfterPlayerTurn
+                 if isFull boardAfterOpponentTurn then print "You drew"
+                   else if detectWin Opponent boardAfterOpponentTurn then print "You win!"
+                        else playOpponentFromBoard oppnentF boardAfterOpponentTurn
+                 
 

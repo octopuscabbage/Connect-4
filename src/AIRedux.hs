@@ -16,7 +16,9 @@ instance Ord ColumnWeight where
   (ColumnWeight w _ ) `compare` (ColumnWeight w2 _) = w `compare` w2
 
 computeNextMove::Board -> Int
-computeNextMove board =  getColumn $ maximum $ map (\(BoardColumn b c) -> ColumnWeight(minMax b maxDepth False ) c )nextPlayerBoards
+computeNextMove board
+  | (board == blankBoard) = 4
+  | otherwise = getColumn $ maximum $ map (\(BoardColumn b c) -> ColumnWeight(minMax b maxDepth False ) c )nextPlayerBoards
 
                         where nextPlayerBoards =computePossibleBoardStatesAfterTurn Player board
                               nextOpponentBoards = computePossibleBoardStatesAfterTurn Opponent board
