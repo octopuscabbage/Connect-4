@@ -4,17 +4,20 @@ module Main where
 
 import Game
 import AI
-import Control.Applicative
-import Control.Concurrent
-import Control.Monad
-import Heuristics
+import Board
+import AIRedux
 
-main = compareBots
+main = compareBots 
 
-compareBots =  watchTwoBotsPlayFromStart treeBot treeBot
+compareBots =  watchTwoBotsPlayFromStart treeBotRedux treeBotRedux
 
 
-playMe = playPlayer (return . treeBot)
+playMe  bot = playPlayer (return . bot)
 
 treeBot board = getMaxOfTree board
 
+treeBot2 board = newMiniMax board
+
+treeBotRedux = computeNextMove
+
+threadScope func = func blankBoard

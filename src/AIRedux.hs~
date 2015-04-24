@@ -1,0 +1,25 @@
+module AIRedux where
+
+import Board
+import Heuristics
+
+maxDepth:: Int
+maxDepth = 5
+
+computeNextMove::Board -> Int
+computeNextMove board = minMax board maxDepth True
+
+
+
+minMax:: Board -> Int -> Bool -> Int
+minMax board 0 _ = getHeuristicOfBoard board --Might need to negate if winner or loser
+minMax board depth maximizingPlayer
+  | hasWon board = maxBound
+  | hasLost board = minBound
+  | maximizingPlayer = maximum  $ minmaxchildren  nextPlayerBoards
+  | not maximizingPlayer = minimum $ minmaxchildren nextOpponentBoards
+
+                       where nextPlayerBoards = map bcBoard $ computePossibleBoardStatesAfterTurn Player board
+                             nextOpponentBoards = map bcBoard $ computePossibleBoardStatesAfterTurn Opponent board
+                             minmaxchildren = map (\ b-> minMax b (depth - 1) (not maximizingPlayer))
+

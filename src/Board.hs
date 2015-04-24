@@ -106,8 +106,10 @@ instance Show BoardPos where
 	show (BoardPos Player row column) = "P"++" "++(show row)++" "++(show column)
 	show (BoardPos Opponent row column) = "O"++" "++(show row) ++ " " ++ show column 
 
+-- | Represents a board and the column used to generate it
+data BoardColumn = BoardColumn { bcBoard :: Board, bcColumn :: Int } deriving (Show)
 -- |Returns all the board states possible from the current board state and the row that you drop in to get them
-computePossibleBoardStatesAfterTurn:: Piece -> Board -> [(Int,Board)]
-computePossibleBoardStatesAfterTurn player currentboard =  fromJust $sequence$ filter isJust $ map (\i->dropPiece player i currentboard >>= (\next -> return (i,next))) [1..7]
+computePossibleBoardStatesAfterTurn:: Piece -> Board -> [BoardColumn]
+computePossibleBoardStatesAfterTurn player currentboard =  fromJust $sequence$ filter isJust $ map (\i->dropPiece player i currentboard >>= (\next -> return ( BoardColumn next i))) [1..7]
 
 

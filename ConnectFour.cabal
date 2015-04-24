@@ -45,7 +45,7 @@ executable ConnectFour
          -threaded
          -eventlog
          -rtsopts
-       "-with-rtsopts=-N7 -ls"
+       "-with-rtsopts=-N8 -ls -sstderr"
 
 Test-Suite spec
   Type:             exitcode-stdio-1.0
